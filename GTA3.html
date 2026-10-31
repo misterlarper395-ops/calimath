@@ -77,13 +77,23 @@
         headers: { 'Content-Type': 'application/octet-stream' }
       });
     }
-    var origGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(type, attrs) {
-      if (type.indexOf('webgl') === 0 || type.indexOf('experimental-webgl') === 0) {
-        attrs = Object.assign({}, attrs || {}, { preserveDrawingBuffer: true });
-      }
-      return origGetContext.call(this, type, attrs);
-    };
+                var origGetContext = HTMLCanvasElement.prototype.getContext;
+            HTMLCanvasElement.prototype.getContext = function(type, attrs) {
+                if (type.indexOf('webgl') === 0 || type.indexOf('experimental-webgl') === 0) {
+                    attrs = Object.assign({}, attrs || {}, { 
+                        preserveDrawingBuffer: false, 
+                        antialias: false, 
+                        alpha: false, 
+                        depth: true,
+                        stencil: false, 
+                        powerPreference: "high-performance",
+                        failIfMajorPerformanceCaveat: false, 
+                        desynchronized: true
+                    });
+                }
+                return origGetContext.call(this, type, attrs);
+            };
+
   })();
 
   Element.prototype.requestFullscreen =
@@ -120,41 +130,34 @@
     document.addEventListener('keydown', resumeAll);
     var Wrapper = function(options) {
       var ctx = new RealAC(options);
-      contexts.push(ctx);
-      if (ctx.state === 'suspended') ctx.resume().catch(function(){});
-      return ctx;
-    };
-    Wrapper.prototype = RealAC.prototype;
-    window.AudioContext = Wrapper;
-    if (window.webkitAudioContext) window.webkitAudioContext = Wrapper;
-  })();
-</script>
-<script>
-  var Module = {
-    preRun: [],
-    postRun: [],
-    canvas: (function() {
-      var canvas = document.getElementById('canvas');
-      if (!canvas) {
-        canvas = document.createElement('canvas');
-        canvas.id = 'canvas';
-        canvas.className = 'emscripten';
-        document.body.appendChild(canvas);
-      }
-      return canvas;
-    })(),
-    setStatus: function(text) {
-      var loading = document.getElementById('loading');
-      if (loading) loading.textContent = text;
-    },
-    totalDependencies: 0,
-    monitorRunDependencies: function(left) {
-      this.totalDependencies = Math.max(this.totalDependencies, left);
-      Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : '');
-    }
-  };
-  Module.setStatus('Loading...');
-</script>
-<script src="re3.js"></script>
+        var Module = {
+            INITIAL_MEMORY: 268435456,
+            preRun: [],
+            postRun: [],
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = 'canvas';
+                    canvas.className = 'emscripten';
+                    canvas.width = 640;
+                    canvas.height = 480;
+                    document.body.appendChild(canvas);
+                }
+                return canvas;
+            })(),
+            setStatus: function(text) {
+                var loading = document.getElementById('loading');
+                if (loading) loading.textContent = text;
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+            }
+        };
+        Module.setStatus('Loading...');
+    </script>
+    <script src="re3.js"></script>
 </body>
 </html>
